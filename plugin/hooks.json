@@ -1,0 +1,17 @@
+{
+  "PreInvocation": {
+    "command": ["node", "${PLUGIN_DIR}/scripts/statusline.js", "PreInvocation"]
+  },
+  "PostInvocation": {
+    "command": ["node", "${PLUGIN_DIR}/scripts/statusline.js", "PostInvocation"]
+  },
+  "PreToolUse": {
+    "command": ["node", "${PLUGIN_DIR}/scripts/statusline.js", "PreToolUse"]
+  },
+  "PostToolUse": {
+    "command": ["node", "${PLUGIN_DIR}/scripts/statusline.js", "PostToolUse"]
+  },
+  "Stop": {
+    "command": ["node", "${PLUGIN_DIR}/scripts/statusline.js", "Stop"]
+  }
+}

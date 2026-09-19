@@ -1,0 +1,5 @@
+{
+  "api_url": "http://localhost:8000",
+  "cache_duration": 3600,
+  "enabled": true
+}
