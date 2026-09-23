@@ -1,44 +1,77 @@
-# Antigravity Compatibility Report
+# Antigravity Compatibility & Custom Status Line Integration
 
-This document records actual environment findings and architectural capabilities of the installed Antigravity CLI and official customization specifications.
+This document details the exact integration architecture between AgentSponsor and Google Antigravity CLI (1.2.7+).
 
-## Environment & Specification Findings
+---
 
-- **Antigravity CLI Version**: Antigravity 2.0 (Snap Build 21)
-- **Plugin Support**: Verified. Plugins are packaged shareable bundles placed in `.agents/plugins/<name>/` or `~/.gemini/config/plugins/` containing `plugin.json`, `hooks.json`, `rules/`, `skills/`, and `mcp_config.json`.
-- **Plugin Installation Command**: `agy plugin enable <plugin-name>` / `agy plugin disable <plugin-name>` (persisted in user `config.json`).
-- **Status-line Support**: Verified via lifecycle hooks (`hooks.json`) and TUI output channels.
-- **Status-line Input**: Structured JSON payload delivered via `stdin` to configured hook handlers.
-- **Available Agent State Information**:
-  - `conversationId` (string)
-  - `workspacePaths` (array of directory strings)
-  - `transcriptPath` (string path to transcript log)
-  - `artifactDirectoryPath` (string path to artifacts)
-  - `modelName` (string model identifier)
-  - `stepIdx` / `invocationNum` / `executionNum` (integers)
-  - `toolCall` (`name` and `args` for `PreToolUse` / `PostToolUse`)
-  - `terminationReason` (`model_stop`, `max_steps_exceeded`, `error` for `Stop`)
-  - `fullyIdle` (boolean flag)
-- **Hooks Available**:
-  - `PreToolUse`
-  - `PostToolUse`
-  - `PreInvocation`
-  - `PostInvocation`
-  - `Stop`
-- **Tips UI Officially Extensible**: **Unverified / Not Supported Natively**.
-  - Current Antigravity CLI specifications do NOT expose an official public extension API to inject custom rows into the native terminal Tips UI component (`Existing Tips ↓ Sponsored message`).
-- **Limitations**:
-  - Native Tips UI placement (`Existing Tips → Sponsored message`) is not officially extensible via `plugin.json` or `hooks.json`.
-  - Hook commands are run via subprocess stdin/stdout JSON protocol and must execute fast (default timeout: 30s) to avoid delaying the agent loop.
+## 1. Custom Status Line API Integration
 
-## Native Tips Extensibility Determination
+Antigravity CLI provides native support for custom terminal status lines via the `statusLine` configuration block in `~/.gemini/antigravity-cli/settings.json`.
 
-**Status**: NOT officially supported.
+### Supported Configuration Schema
 
-**Detailed Finding**:
-The desired user experience of directly appending a sponsored message into the native Antigravity terminal "Tips" UI container is not supported by any official extension or plugin schema in Antigravity. The native Tips container is rendered internally by the Antigravity TUI renderer.
+```json
+{
+  "statusLine": {
+    "type": "command",
+    "command": "node ~/.gemini/config/plugins/agentsponsor/scripts/agentsponsor-statusline.js",
+    "stack_with_default": true
+  }
+}
+```
 
-**Alternative Supported UX Options**:
-1. Delivering unobtrusive status notifications or injected system context via `PreInvocation` / `PostInvocation` hooks (`ephemeralMessage` / transient notification).
-2. Presenting sponsorship content in a dedicated sidecar or web dashboard panel.
-3. Rendering sponsorship banners via CLI status line or custom hook outputs.
+### Key Properties
+
+- **`stack_with_default: true`**: Renders both the default Antigravity status line (with native tips, model information, and working spinner) and the custom status line vertically stacked.
+  ```text
+  Row 1: [Default Antigravity Status / Native Tips Line]
+  Row 2: Sponsored · CloudForge Demo — Deploy your AI backend in seconds →
+  ```
+- **State-Driven Display**: Antigravity executes the status line command and pipes a JSON payload to `stdin` containing:
+  ```json
+  {
+    "agent_state": "working",
+    "conversation_id": "...",
+    "terminal_columns": 80
+  }
+  ```
+- **Supported Lifecycle States**:
+  - `thinking`: Model reasoning actively in progress ──► Sponsor displayed.
+  - `working`: Planning or file editing in progress ──► Sponsor displayed.
+  - `tool_use`: Tool invocation in progress ──► Sponsor displayed.
+  - `idle`: Agent completed turn and waiting for user input ──► Empty stdout (line hidden).
+  - `initializing`: CLI booting or workspace loading ──► Empty stdout (line hidden).
+
+---
+
+## 2. Removal of In-Stream `ephemeralMessage` Injection
+
+In earlier iterations, `PreInvocation` used `injectSteps` with `ephemeralMessage` to render sponsor text into the chat stream. While functional, this polluted prompt history and did not deliver the intended footer status experience.
+
+Under the current architecture:
+- `PreInvocation` and all lifecycle hooks in `hooks.json` return `{}` or `{"decision": "allow"}`.
+- Visual rendering is 100% delegated to the Antigravity `statusLine` API.
+- The conversation stream and transcripts remain completely clean.
+
+---
+
+## 3. Background Lifecycle Telemetry via `hooks.json`
+
+The 5 lifecycle hooks defined in `plugin/hooks.json` continue to manage session tracking and impression attribution without visual rendering:
+
+| Hook Name | Lifecycle Event | Matcher | Purpose | Output |
+|---|---|---|---|---|
+| `agentsponsor-pre-invocation` | `PreInvocation` | N/A | Session start & deduplicated impression telemetry | `{}` |
+| `agentsponsor-post-invocation` | `PostInvocation` | N/A | Turn completion telemetry | `{}` |
+| `agentsponsor-pre-tool-use` | `PreToolUse` | `*` | Fail-open safety gate (always permits tools) | `{"decision": "allow"}` |
+| `agentsponsor-post-tool-use` | `PostToolUse` | `*` | Post-tool telemetry | `{}` |
+| `agentsponsor-stop` | `Stop` | N/A | Session ended telemetry | `{}` |
+
+---
+
+## 4. Fail-Open & Resilience Guarantees
+
+- **Ad Server Outage**: If the backend API (`:8000`) is offline, the status line script times out in 1000ms, outputs nothing, and exits with code 0.
+- **Agent Unaffected**: The agent execution, tools, and user interaction continue uninterrupted.
+- **Graceful Truncation**: On narrow terminals (columns < 40), the script truncates gracefully with `…` to avoid terminal line wrapping.
+- **Zero Privacy Leakage**: No prompts, source code, terminal commands, or model thinking outputs are ever read, stored, or transmitted.

@@ -1,0 +1,14 @@
+{
+  "version": "1.0.0",
+  "release_date": "2026-09-23",
+  "min_cli_version": "1.0.0",
+  "tested_cli_version": "1.2.7",
+  "tar_gz": {
+    "url": "/releases/agentsponsor-plugin-v1.0.0.tar.gz",
+    "sha256": "bb42bbf771fa56f762f3b36fb387fb7286d9c60c5fa87563da10e48b4ba8f2cf"
+  },
+  "zip": {
+    "url": "/releases/agentsponsor-plugin-v1.0.0.zip",
+    "sha256": "dcfc424ddc53136efc92c4ed11c9b517d269af9fe39aabbd422f15d624d6cf99"
+  }
+}

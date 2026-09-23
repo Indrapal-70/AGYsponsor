@@ -1,17 +1,57 @@
 {
-  "PreInvocation": {
-    "command": ["node", "${PLUGIN_DIR}/scripts/statusline.js", "PreInvocation"]
+  "agentsponsor-pre-invocation": {
+    "PreInvocation": [
+      {
+        "type": "command",
+        "command": "node scripts/statusline.js PreInvocation",
+        "timeout": 5
+      }
+    ]
   },
-  "PostInvocation": {
-    "command": ["node", "${PLUGIN_DIR}/scripts/statusline.js", "PostInvocation"]
+  "agentsponsor-post-invocation": {
+    "PostInvocation": [
+      {
+        "type": "command",
+        "command": "node scripts/statusline.js PostInvocation",
+        "timeout": 5
+      }
+    ]
   },
-  "PreToolUse": {
-    "command": ["node", "${PLUGIN_DIR}/scripts/statusline.js", "PreToolUse"]
+  "agentsponsor-pre-tool-use": {
+    "PreToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node scripts/statusline.js PreToolUse",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
   },
-  "PostToolUse": {
-    "command": ["node", "${PLUGIN_DIR}/scripts/statusline.js", "PostToolUse"]
+  "agentsponsor-post-tool-use": {
+    "PostToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node scripts/statusline.js PostToolUse",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
   },
-  "Stop": {
-    "command": ["node", "${PLUGIN_DIR}/scripts/statusline.js", "Stop"]
+  "agentsponsor-stop": {
+    "Stop": [
+      {
+        "type": "command",
+        "command": "node scripts/statusline.js Stop",
+        "timeout": 5
+      }
+    ]
   }
 }
