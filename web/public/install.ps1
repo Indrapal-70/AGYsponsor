@@ -1,49 +1,64 @@
-$ErrorActionPreference = "SilentlyContinue"
+$ErrorActionPreference = "Stop"
 
-$BaseUrl = if ($env:AGENTSPONSOR_SITE_URL) { $env:AGENTSPONSOR_SITE_URL } else { "https://agentsponsor.com" }
-$ApiUrl = if ($env:AGENTSPONSOR_API_URL) { $env:AGENTSPONSOR_API_URL } else { "https://api.agentsponsor.com" }
-$DestDir = Join-Path $env:USERPROFILE ".gemini\config\plugins\agentsponsor"
+Write-Host "========================================================" -ForegroundColor Cyan
+Write-Host "  AgentSponsor CLI Plugin Installer (Antigravity Native)" -ForegroundColor Green
+Write-Host "========================================================" -ForegroundColor Cyan
+
+$AgyPluginDir = Join-Path $env:USERPROFILE ".gemini\config\plugins\agentsponsor"
 $ConfigDir = Join-Path $env:USERPROFILE ".agentsponsor"
-$ConfigFile = Join-Path $ConfigDir "config.json"
 $SettingsFile = Join-Path $env:USERPROFILE ".gemini\antigravity-cli\settings.json"
 
-Write-Host "============================================================"
-Write-Host "Installing AgentSponsor Plugin..."
-Write-Host "============================================================"
-
-if (-not (Get-Command node -ErrorAction SilentlyContinue)) {
-    Write-Warning "Node.js is required to run the AgentSponsor status line. Please install Node.js 18+ and try again."
-    Exit 1
-}
-
+# 1. Initialize Machine Config
 if (-not (Test-Path $ConfigDir)) {
-    New-Item -ItemType Directory -Path $ConfigDir -Force | Out-Null
+    New-Item -ItemType Directory -Path $ConfigDir | Out-Null
 }
 
-$InstallId = [guid]::NewGuid().ToString()
-if (-not (Test-Path $ConfigFile)) {
-    "{`"installation_id`": `"$InstallId`"}" | Set-Content -Path $ConfigFile
-} else {
+$ConfigFile = Join-Path $ConfigDir "config.json"
+$Uuid = $null
+
+if (Test-Path $ConfigFile) {
     try {
-        $json = Get-Content -Raw -Path $ConfigFile | ConvertFrom-Json
-        if ($json.installation_id) { $InstallId = $json.installation_id }
-    } catch {}
+        $cfg = Get-Content -Raw -Path $ConfigFile | ConvertFrom-Json
+        $Uuid = $cfg.installation_id
+    } catch { }
 }
 
-$TempZip = Join-Path $env:TEMP "agentsponsor-plugin.zip"
-$ArchiveUrl = "$BaseUrl/releases/agentsponsor-plugin-v1.0.0.zip"
+if (-not $Uuid) {
+    $Uuid = [guid]::NewGuid().ToString()
+    $ConfigContent = @{
+        installation_id = $Uuid
+        api_url = "http://localhost:8000"
+        enabled = $true
+    } | ConvertTo-Json
+    Set-Content -Path $ConfigFile -Value $ConfigContent
+}
+
+# 2. Ensure destination plugin folder exists
+if (-not (Test-Path $AgyPluginDir)) {
+    New-Item -ItemType Directory -Path $AgyPluginDir -Force | Out-Null
+}
+$scriptsDir = Join-Path $AgyPluginDir "scripts"
+if (-not (Test-Path $scriptsDir)) {
+    New-Item -ItemType Directory -Path $scriptsDir -Force | Out-Null
+}
+
+# 3. Download / Copy statusline script
+$statuslineScript = Join-Path $scriptsDir "agentsponsor-statusline.js"
+$sourceUrl = "http://localhost:3000/agentsponsor-statusline.js"
 
 try {
-    Invoke-WebRequest -Uri $ArchiveUrl -OutFile $TempZip -UseBasicParsing
-    if (Test-Path $DestDir) { Remove-Item -Path $DestDir -Recurse -Force }
-    New-Item -ItemType Directory -Path $DestDir -Force | Out-Null
-    Expand-Archive -Path $TempZip -DestinationPath $DestDir -Force
-    Remove-Item -Path $TempZip -Force
+    Invoke-WebRequest -Uri $sourceUrl -OutFile $statuslineScript -UseBasicParsing
 } catch {
-    Write-Warning "Could not download public archive, checking local fallback..."
+    # If downloading from localhost fails, copy from local workspace if available
+    $localWsFile = Join-Path (Get-Location) "plugin\scripts\agentsponsor-statusline.js"
+    if (Test-Path $localWsFile) {
+        Copy-Item -Path $localWsFile -Destination $statuslineScript -Force
+    }
 }
 
-# Update settings.json with statusLine
+Write-Host "`n✓ Plugin installed to: $AgyPluginDir" -ForegroundColor Green
+
+# 4. Configure Antigravity CLI statusLine
 if (Test-Path $SettingsFile) {
     try {
         $settings = Get-Content -Raw -Path $SettingsFile | ConvertFrom-Json
@@ -53,19 +68,17 @@ if (Test-Path $SettingsFile) {
             stack_with_default = $true
         } -Force
         $settings | ConvertTo-Json -Depth 10 | Set-Content -Path $SettingsFile
-    } catch {}
+        Write-Host "✓ Configured statusLine in: $SettingsFile" -ForegroundColor Green
+    } catch {
+        Write-Warning "Could not update statusLine settings: $_"
+    }
 }
 
-$PairingCode = "WIN-" + (Get-Random -Minimum 1000 -Maximum 9999).ToString()
-$ConnectUrl = "$BaseUrl/connect?code=$PairingCode"
-
-Write-Host ""
-Write-Host "============================================================"
-Write-Host "✓ AgentSponsor successfully installed!"
-Write-Host ""
-Write-Host "Connect this installation to start earning:"
-Write-Host $ConnectUrl
-Write-Host ""
-Write-Host "Pairing code: $PairingCode (valid for 15 minutes)"
-Write-Host "============================================================"
-Write-Host ""
+# 5. Print Pairing Information
+Write-Host "`n--------------------------------------------------------" -ForegroundColor DarkGray
+Write-Host "  INSTALLATION UUID: $Uuid" -ForegroundColor Yellow
+Write-Host "--------------------------------------------------------" -ForegroundColor DarkGray
+Write-Host "To link this machine to your personal earnings ledger:" -ForegroundColor White
+Write-Host "  1. Sign in at: http://localhost:3000/login" -ForegroundColor Cyan
+Write-Host "  2. Direct link: http://localhost:3000/connect?code=$Uuid" -ForegroundColor Cyan
+Write-Host "========================================================`n" -ForegroundColor Green

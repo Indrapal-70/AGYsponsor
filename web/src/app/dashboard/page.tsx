@@ -1,7 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
+import {
+  PageShell,
+  TechnicalEyebrow,
+  MetricDisplay,
+  StatusIndicator,
+  MotionWrapper,
+} from '@/components/primitives';
 
 interface PayoutAccount {
   type: 'UPI' | 'BANK_TRANSFER';
@@ -11,20 +18,18 @@ interface PayoutAccount {
 }
 
 export default function ConsumerDashboard() {
-  // State for balances (derived from immutable ledger)
   const [balance, setBalance] = useState({
-    available: 124.80,
-    pending: 18.40,
-    totalEarned: 342.20,
-    paidOut: 199.00
+    available: 124.8,
+    pending: 18.4,
+    totalEarned: 342.2,
+    paidOut: 199.0,
   });
 
-  // State for payout account
   const [payoutAccount, setPayoutAccount] = useState<PayoutAccount>({
     type: 'UPI',
     identifier: 'developer@okhdfcbank',
     holderName: 'Indrapal Singh',
-    isVerified: true
+    isVerified: true,
   });
 
   const [isEditingAccount, setIsEditingAccount] = useState(false);
@@ -32,12 +37,10 @@ export default function ConsumerDashboard() {
   const [newIdentifier, setNewIdentifier] = useState('');
   const [newHolderName, setNewHolderName] = useState('');
 
-  // Payout request modal state
   const [showPayoutModal, setShowPayoutModal] = useState(false);
   const [payoutAmount, setPayoutAmount] = useState('100');
   const [payoutStatus, setPayoutStatus] = useState<string | null>(null);
 
-  // Installations
   const [installations, setInstallations] = useState([
     {
       id: 'inst_01',
@@ -46,7 +49,7 @@ export default function ConsumerDashboard() {
       os: 'Linux (WSL2 Ubuntu 24.04)',
       version: '1.0.0',
       status: 'ACTIVE',
-      lastSeen: '2 minutes ago'
+      lastSeen: '2 minutes ago',
     },
     {
       id: 'inst_02',
@@ -55,11 +58,10 @@ export default function ConsumerDashboard() {
       os: 'macOS Sonoma 14.5',
       version: '1.0.0',
       status: 'ACTIVE',
-      lastSeen: 'Yesterday'
-    }
+      lastSeen: 'Yesterday',
+    },
   ]);
 
-  // Ledger history
   const [ledgerEntries, setLedgerEntries] = useState([
     {
       id: 'ledg_001',
@@ -67,7 +69,7 @@ export default function ConsumerDashboard() {
       campaign: 'CloudForge Demo',
       type: 'EXPOSURE_REWARD',
       amount: '+₹0.20',
-      status: 'AVAILABLE'
+      status: 'AVAILABLE',
     },
     {
       id: 'ledg_002',
@@ -75,7 +77,7 @@ export default function ConsumerDashboard() {
       campaign: 'VectorScale AI',
       type: 'EXPOSURE_REWARD',
       amount: '+₹0.20',
-      status: 'AVAILABLE'
+      status: 'AVAILABLE',
     },
     {
       id: 'ledg_003',
@@ -83,7 +85,7 @@ export default function ConsumerDashboard() {
       campaign: 'PromptShield',
       type: 'EXPOSURE_REWARD',
       amount: '+₹0.20',
-      status: 'AVAILABLE'
+      status: 'AVAILABLE',
     },
     {
       id: 'ledg_004',
@@ -91,8 +93,8 @@ export default function ConsumerDashboard() {
       campaign: 'Platform Withdrawal',
       type: 'PAYOUT_COMPLETED',
       amount: '-₹199.00',
-      status: 'PAID'
-    }
+      status: 'PAID',
+    },
   ]);
 
   const handleSaveAccount = (e: React.FormEvent) => {
@@ -103,7 +105,7 @@ export default function ConsumerDashboard() {
       type: newAccountType,
       identifier: newIdentifier.trim(),
       holderName: newHolderName.trim() || 'Account Holder',
-      isVerified: true
+      isVerified: true,
     });
     setIsEditingAccount(false);
   };
@@ -120,22 +122,21 @@ export default function ConsumerDashboard() {
       return;
     }
 
-    // Deduct available balance and add ledger entry
-    setBalance(prev => ({
+    setBalance((prev) => ({
       ...prev,
-      available: parseFloat((prev.available - amountNum).toFixed(2))
+      available: parseFloat((prev.available - amountNum).toFixed(2)),
     }));
 
-    setLedgerEntries(prev => [
+    setLedgerEntries((prev) => [
       {
         id: `ledg_${Date.now()}`,
         date: 'Just now',
         campaign: `Withdrawal to ${payoutAccount.identifier}`,
         type: 'PAYOUT_RESERVATION',
         amount: `-₹${amountNum.toFixed(2)}`,
-        status: 'PENDING'
+        status: 'PENDING',
       },
-      ...prev
+      ...prev,
     ]);
 
     setPayoutStatus(`Payout of ₹${amountNum.toFixed(2)} requested successfully! Processing via ${payoutAccount.type}.`);
@@ -146,104 +147,104 @@ export default function ConsumerDashboard() {
   };
 
   return (
-    <div className="bg-gray-950 text-white min-h-screen py-10 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto space-y-10">
-        
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-gray-800 pb-6">
+    <PageShell maxWidth="7xl">
+      <MotionWrapper>
+        {/* Top Operational Header */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-zinc-800/80 pb-6 mb-8">
           <div>
-            <h1 className="text-3xl font-extrabold text-white tracking-tight">Consumer Dashboard</h1>
-            <p className="text-sm text-gray-400 mt-1">
-              Live earnings ledger, paired CLI installations, and India UPI/Bank payouts.
+            <div className="flex items-center space-x-2">
+              <TechnicalEyebrow variant="emerald">Developer Console</TechnicalEyebrow>
+              <h1 className="text-2xl sm:text-3xl font-semibold text-white tracking-tight">
+                Earnings & Installations
+              </h1>
+            </div>
+            <p className="text-xs text-zinc-400 mt-1">
+              Live ledger accounting, verified dwell rewards, and direct Indian UPI rails.
             </p>
           </div>
           <div className="flex items-center gap-3">
             <Link
               href="/connect"
-              className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-black text-xs font-bold rounded-lg transition"
+              className="px-4 py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700/80 text-zinc-200 text-xs font-mono font-medium rounded-lg transition-all"
             >
               + Pair New Terminal
             </Link>
             <button
               onClick={() => setShowPayoutModal(true)}
-              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-lg shadow-lg transition"
+              className="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 text-xs font-semibold rounded-lg shadow-[0_0_15px_rgba(16,185,129,0.2)] transition-all active:scale-[0.98]"
             >
-              Request Withdrawal
+              Request Withdrawal →
             </button>
           </div>
         </div>
+      </MotionWrapper>
 
-        {/* 4 Financial Metrics (Derived from Ledger) */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          <div className="rounded-xl border border-gray-800 bg-gray-900/60 p-5 space-y-1">
-            <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Available Balance</span>
-            <div className="text-3xl font-extrabold text-emerald-400">
-              ₹{balance.available.toFixed(2)}
-            </div>
-            <p className="text-[11px] text-gray-500">Ready for instant payout (min ₹50)</p>
-          </div>
-
-          <div className="rounded-xl border border-gray-800 bg-gray-900/60 p-5 space-y-1">
-            <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Pending Balance</span>
-            <div className="text-3xl font-extrabold text-amber-400">
-              ₹{balance.pending.toFixed(2)}
-            </div>
-            <p className="text-[11px] text-gray-500">Awaiting anti-fraud dwell verification</p>
-          </div>
-
-          <div className="rounded-xl border border-gray-800 bg-gray-900/60 p-5 space-y-1">
-            <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Total Earned</span>
-            <div className="text-3xl font-extrabold text-white">
-              ₹{balance.totalEarned.toFixed(2)}
-            </div>
-            <p className="text-[11px] text-gray-500">Lifetime gross developer share</p>
-          </div>
-
-          <div className="rounded-xl border border-gray-800 bg-gray-900/60 p-5 space-y-1">
-            <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Total Paid Out</span>
-            <div className="text-3xl font-extrabold text-indigo-400">
-              ₹{balance.paidOut.toFixed(2)}
-            </div>
-            <p className="text-[11px] text-gray-500">Successfully disbursed to UPI/Bank</p>
-          </div>
+      {/* 4 Key Metrics */}
+      <MotionWrapper delay={0.1}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+          <MetricDisplay
+            label="Available Balance"
+            value={`₹${balance.available.toFixed(2)}`}
+            subtext="Ready for instant payout (min ₹50)"
+            variant="emerald"
+            badge="Liquid"
+          />
+          <MetricDisplay
+            label="Pending Verification"
+            value={`₹${balance.pending.toFixed(2)}`}
+            subtext="Awaiting anti-fraud dwell confirmation"
+            badge="Dwell Pending"
+          />
+          <MetricDisplay
+            label="Gross Lifetime Earned"
+            value={`₹${balance.totalEarned.toFixed(2)}`}
+            subtext="Cumulative gross developer share"
+          />
+          <MetricDisplay
+            label="Disbursed to UPI / Bank"
+            value={`₹${balance.paidOut.toFixed(2)}`}
+            subtext="Successfully transferred to destination"
+          />
         </div>
+      </MotionWrapper>
 
-        {/* Payout Destination Card */}
-        <div className="rounded-xl border border-gray-800 bg-gray-900/40 p-6 space-y-4">
-          <div className="flex justify-between items-center">
+      {/* Payout Destination Setting Card */}
+      <MotionWrapper delay={0.2}>
+        <div className="rounded-2xl border border-zinc-800 bg-[#0c0c0e] p-6 mb-8 shadow-lg">
+          <div className="flex justify-between items-center mb-4">
             <div className="flex items-center space-x-3">
               <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 font-bold text-sm">
                 ₹
               </div>
               <div>
-                <h3 className="text-base font-bold text-white">Payout Destination (India)</h3>
-                <p className="text-xs text-gray-400">Withdrawals are processed directly to this destination</p>
+                <h3 className="text-sm font-semibold text-white">Payout Destination (India Rails)</h3>
+                <p className="text-xs text-zinc-400">Withdrawals are transferred directly to this verified endpoint</p>
               </div>
             </div>
             <button
               onClick={() => setIsEditingAccount(!isEditingAccount)}
-              className="text-xs text-indigo-400 hover:text-indigo-300 font-medium"
+              className="text-xs font-mono text-emerald-400 hover:text-emerald-300 font-medium"
             >
-              {isEditingAccount ? 'Cancel' : 'Change Account'}
+              {isEditingAccount ? 'Cancel' : 'Edit Account'}
             </button>
           </div>
 
           {isEditingAccount ? (
-            <form onSubmit={handleSaveAccount} className="pt-2 grid grid-cols-1 sm:grid-cols-3 gap-4 border-t border-gray-800">
+            <form onSubmit={handleSaveAccount} className="pt-4 grid grid-cols-1 sm:grid-cols-3 gap-4 border-t border-zinc-800">
               <div>
-                <label className="block text-xs text-gray-400 mb-1">Account Type</label>
+                <label className="block text-xs font-mono text-zinc-400 mb-1">Account Type</label>
                 <select
                   value={newAccountType}
                   onChange={(e) => setNewAccountType(e.target.value as any)}
-                  className="w-full bg-black/60 border border-gray-700 rounded-lg px-3 py-2 text-xs text-white"
+                  className="w-full bg-black/80 border border-zinc-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
                 >
                   <option value="UPI">UPI (VPA)</option>
                   <option value="BANK_TRANSFER">Bank Account (IFSC:Acc)</option>
                 </select>
               </div>
               <div>
-                <label className="block text-xs text-gray-400 mb-1">
-                  {newAccountType === 'UPI' ? 'UPI ID (e.g. name@okhdfcbank)' : 'IFSC:Account (e.g. HDFC0001:12345)'}
+                <label className="block text-xs font-mono text-zinc-400 mb-1">
+                  {newAccountType === 'UPI' ? 'UPI ID (e.g. name@okhdfcbank)' : 'IFSC:Account'}
                 </label>
                 <input
                   type="text"
@@ -251,7 +252,7 @@ export default function ConsumerDashboard() {
                   value={newIdentifier}
                   onChange={(e) => setNewIdentifier(e.target.value)}
                   placeholder={newAccountType === 'UPI' ? 'user@upi' : 'HDFC0001234:5010023456789'}
-                  className="w-full bg-black/60 border border-gray-700 rounded-lg px-3 py-2 text-xs text-white"
+                  className="w-full bg-black/80 border border-zinc-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
                 />
               </div>
               <div className="flex items-end gap-2">
@@ -260,113 +261,119 @@ export default function ConsumerDashboard() {
                   value={newHolderName}
                   onChange={(e) => setNewHolderName(e.target.value)}
                   placeholder="Account Holder Name"
-                  className="w-full bg-black/60 border border-gray-700 rounded-lg px-3 py-2 text-xs text-white"
+                  className="w-full bg-black/80 border border-zinc-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
                 />
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-emerald-500 text-black font-bold text-xs rounded-lg whitespace-nowrap"
+                  className="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold text-xs rounded-lg whitespace-nowrap"
                 >
                   Save
                 </button>
               </div>
             </form>
           ) : (
-            <div className="flex items-center justify-between bg-black/40 p-3 rounded-lg border border-gray-800 text-xs">
+            <div className="flex items-center justify-between bg-black/70 p-3.5 rounded-xl border border-zinc-800/90 text-xs font-mono">
               <div className="flex items-center space-x-3">
-                <span className="font-mono bg-gray-800 text-indigo-300 px-2 py-0.5 rounded uppercase text-[10px]">
+                <span className="bg-zinc-800 text-emerald-400 px-2 py-0.5 rounded text-[10px] uppercase font-bold border border-emerald-500/20">
                   {payoutAccount.type}
                 </span>
-                <span className="font-mono text-white">{payoutAccount.identifier}</span>
-                <span className="text-gray-500">({payoutAccount.holderName})</span>
+                <span className="text-white font-semibold">{payoutAccount.identifier}</span>
+                <span className="text-zinc-500 font-sans">({payoutAccount.holderName})</span>
               </div>
-              <span className="text-emerald-400 font-semibold flex items-center space-x-1">
-                <span>✓</span>
-                <span>Verified</span>
-              </span>
+              <StatusIndicator label="Verified Endpoint" variant="emerald" />
             </div>
           )}
         </div>
+      </MotionWrapper>
 
-        {/* Linked Installations Table */}
-        <div className="rounded-xl border border-gray-800 bg-gray-900/40 overflow-hidden">
-          <div className="p-5 border-b border-gray-800 flex justify-between items-center">
+      {/* Linked Installations Table */}
+      <MotionWrapper delay={0.3}>
+        <div className="rounded-2xl border border-zinc-800 bg-[#0c0c0e] overflow-hidden mb-8 shadow-lg">
+          <div className="p-5 border-b border-zinc-800 flex justify-between items-center">
             <div>
-              <h3 className="text-base font-bold text-white">Linked Installations</h3>
-              <p className="text-xs text-gray-400">Antigravity CLI instances paired to this account</p>
+              <h3 className="text-sm font-semibold text-white">Linked Terminal Installations</h3>
+              <p className="text-xs text-zinc-400">Antigravity CLI instances generating dwell telemetry</p>
             </div>
-            <Link
-              href="/connect"
-              className="text-xs text-indigo-400 hover:text-indigo-300 font-semibold"
-            >
+            <Link href="/connect" className="text-xs font-mono text-emerald-400 hover:text-emerald-300 font-medium">
               + Pair Another Device
             </Link>
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-gray-900/80 text-gray-400 border-b border-gray-800">
+            <table className="w-full text-left text-xs font-mono">
+              <thead className="bg-[#111114] text-zinc-400 border-b border-zinc-800">
                 <tr>
-                  <th className="py-3 px-4">Device Name</th>
+                  <th className="py-3 px-4 font-sans font-semibold">Device Name</th>
                   <th className="py-3 px-4">UUID</th>
-                  <th className="py-3 px-4">Platform / OS</th>
+                  <th className="py-3 px-4 font-sans font-semibold">Platform</th>
                   <th className="py-3 px-4">Version</th>
                   <th className="py-3 px-4">Status</th>
-                  <th className="py-3 px-4">Last Seen</th>
+                  <th className="py-3 px-4 font-sans font-semibold">Last Seen</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-800 text-gray-300">
+              <tbody className="divide-y divide-zinc-800/60 text-zinc-300">
                 {installations.map((inst) => (
-                  <tr key={inst.id} className="hover:bg-gray-800/20">
-                    <td className="py-3.5 px-4 font-semibold text-white">{inst.deviceName}</td>
-                    <td className="py-3.5 px-4 font-mono text-gray-400">{inst.uuid.substring(0, 18)}...</td>
-                    <td className="py-3.5 px-4">{inst.os}</td>
-                    <td className="py-3.5 px-4 font-mono">{inst.version}</td>
+                  <tr key={inst.id} className="hover:bg-zinc-900/40 transition-colors">
+                    <td className="py-3.5 px-4 font-sans font-medium text-white">{inst.deviceName}</td>
+                    <td className="py-3.5 px-4 text-zinc-400">{inst.uuid.substring(0, 18)}...</td>
+                    <td className="py-3.5 px-4 font-sans text-zinc-300">{inst.os}</td>
+                    <td className="py-3.5 px-4 text-emerald-400">{inst.version}</td>
                     <td className="py-3.5 px-4">
-                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
                         {inst.status}
                       </span>
                     </td>
-                    <td className="py-3.5 px-4 text-gray-400">{inst.lastSeen}</td>
+                    <td className="py-3.5 px-4 font-sans text-zinc-400">{inst.lastSeen}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
         </div>
+      </MotionWrapper>
 
-        {/* Immutable Earnings Ledger Table */}
-        <div className="rounded-xl border border-gray-800 bg-gray-900/40 overflow-hidden">
-          <div className="p-5 border-b border-gray-800">
-            <h3 className="text-base font-bold text-white">Immutable Earnings Ledger</h3>
-            <p className="text-xs text-gray-400">Append-only audit trail of exposures, credits, and withdrawals</p>
+      {/* Immutable Earnings Ledger Table */}
+      <MotionWrapper delay={0.4}>
+        <div className="rounded-2xl border border-zinc-800 bg-[#0c0c0e] overflow-hidden mb-12 shadow-lg">
+          <div className="p-5 border-b border-zinc-800">
+            <h3 className="text-sm font-semibold text-white">Immutable Earnings Ledger</h3>
+            <p className="text-xs text-zinc-400">Append-only audit trail of exposures, credits, and withdrawals</p>
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-gray-900/80 text-gray-400 border-b border-gray-800">
+            <table className="w-full text-left text-xs font-mono">
+              <thead className="bg-[#111114] text-zinc-400 border-b border-zinc-800">
                 <tr>
                   <th className="py-3 px-4">Timestamp</th>
-                  <th className="py-3 px-4">Campaign / Note</th>
+                  <th className="py-3 px-4 font-sans font-semibold">Campaign / Activity</th>
                   <th className="py-3 px-4">Entry Type</th>
                   <th className="py-3 px-4">Amount (INR)</th>
                   <th className="py-3 px-4">Ledger Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-800 text-gray-300">
+              <tbody className="divide-y divide-zinc-800/60 text-zinc-300">
                 {ledgerEntries.map((row) => (
-                  <tr key={row.id} className="hover:bg-gray-800/20">
-                    <td className="py-3.5 px-4 text-gray-400 font-mono">{row.date}</td>
-                    <td className="py-3.5 px-4 font-medium text-white">{row.campaign}</td>
-                    <td className="py-3.5 px-4 font-mono text-[11px] text-gray-400">{row.type}</td>
-                    <td className={`py-3.5 px-4 font-bold font-mono ${row.amount.startsWith('+') ? 'text-emerald-400' : 'text-indigo-400'}`}>
+                  <tr key={row.id} className="hover:bg-zinc-900/40 transition-colors">
+                    <td className="py-3.5 px-4 text-zinc-400">{row.date}</td>
+                    <td className="py-3.5 px-4 font-sans font-medium text-white">{row.campaign}</td>
+                    <td className="py-3.5 px-4 text-[11px] text-zinc-400">{row.type}</td>
+                    <td
+                      className={`py-3.5 px-4 font-bold ${
+                        row.amount.startsWith('+') ? 'text-emerald-400' : 'text-zinc-300'
+                      }`}
+                    >
                       {row.amount}
                     </td>
                     <td className="py-3.5 px-4">
-                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                        row.status === 'AVAILABLE' ? 'bg-emerald-500/10 text-emerald-400' :
-                        row.status === 'PENDING' ? 'bg-amber-500/10 text-amber-400' :
-                        'bg-blue-500/10 text-blue-400'
-                      }`}>
+                      <span
+                        className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                          row.status === 'AVAILABLE'
+                            ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
+                            : row.status === 'PENDING'
+                            ? 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
+                            : 'bg-zinc-800 text-zinc-300 border border-zinc-700'
+                        }`}
+                      >
                         {row.status}
                       </span>
                     </td>
@@ -376,38 +383,37 @@ export default function ConsumerDashboard() {
             </table>
           </div>
         </div>
-
-      </div>
+      </MotionWrapper>
 
       {/* Payout Request Modal */}
       {showPayoutModal && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 max-w-md w-full space-y-5">
-            <div className="flex justify-between items-center">
-              <h3 className="text-lg font-bold text-white">Request Payout</h3>
+          <div className="bg-[#0c0c0e] border border-zinc-800 rounded-2xl p-6 max-w-md w-full space-y-5 shadow-2xl">
+            <div className="flex justify-between items-center pb-3 border-b border-zinc-800">
+              <h3 className="text-base font-semibold text-white">Request Payout Disbursement</h3>
               <button
                 onClick={() => setShowPayoutModal(false)}
-                className="text-gray-400 hover:text-white"
+                className="text-zinc-400 hover:text-white font-mono text-sm"
               >
                 ✕
               </button>
             </div>
 
             {payoutStatus ? (
-              <div className="p-4 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs">
+              <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs">
                 {payoutStatus}
               </div>
             ) : (
               <form onSubmit={handleRequestPayout} className="space-y-4">
                 <div>
-                  <span className="block text-xs text-gray-400 mb-1">Available for Withdrawal</span>
-                  <div className="text-2xl font-extrabold text-emerald-400">
+                  <span className="block text-xs font-mono text-zinc-400 mb-1">Available Balance</span>
+                  <div className="text-2xl font-semibold text-emerald-400">
                     ₹{balance.available.toFixed(2)}
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-gray-300 uppercase tracking-wider mb-2">
+                  <label className="block text-xs font-mono font-semibold text-zinc-300 uppercase tracking-wider mb-2">
                     Withdrawal Amount (₹)
                   </label>
                   <input
@@ -418,14 +424,14 @@ export default function ConsumerDashboard() {
                     value={payoutAmount}
                     onChange={(e) => setPayoutAmount(e.target.value)}
                     required
-                    className="w-full bg-black/60 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white"
+                    className="w-full bg-black/80 border border-zinc-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500 font-mono"
                   />
-                  <p className="text-[11px] text-gray-500 mt-1">Minimum withdrawal: ₹50.00</p>
+                  <p className="text-[11px] text-zinc-500 font-mono mt-1">Minimum withdrawal threshold: ₹50.00</p>
                 </div>
 
-                <div className="p-3 bg-black/40 rounded-lg border border-gray-800 text-xs space-y-1">
-                  <span className="text-gray-400">Destination:</span>
-                  <div className="font-mono text-white">
+                <div className="p-3 bg-black/60 rounded-xl border border-zinc-800 text-xs space-y-1 font-mono">
+                  <span className="text-zinc-500 uppercase text-[10px]">Destination:</span>
+                  <div className="text-white">
                     {payoutAccount.type}: {payoutAccount.identifier}
                   </div>
                 </div>
@@ -434,16 +440,16 @@ export default function ConsumerDashboard() {
                   <button
                     type="button"
                     onClick={() => setShowPayoutModal(false)}
-                    className="px-4 py-2 border border-gray-700 hover:bg-gray-800 text-xs rounded-lg text-gray-300"
+                    className="px-4 py-2 border border-zinc-700 hover:bg-zinc-800 text-xs rounded-lg text-zinc-300 transition-colors"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={balance.available < 50}
-                    className="px-5 py-2 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-black font-bold text-xs rounded-lg"
+                    className="px-5 py-2 bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 text-zinc-950 font-semibold text-xs rounded-lg shadow-sm transition-all"
                   >
-                    Confirm & Disburse
+                    Confirm & Transfer
                   </button>
                 </div>
               </form>
@@ -451,6 +457,6 @@ export default function ConsumerDashboard() {
           </div>
         </div>
       )}
-    </div>
+    </PageShell>
   );
 }

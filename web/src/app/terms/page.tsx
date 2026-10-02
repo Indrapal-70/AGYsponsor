@@ -1,49 +1,56 @@
+import React from 'react';
+import {
+  PageShell,
+  SectionHeader,
+  TechnicalEyebrow,
+  MotionWrapper,
+} from '@/components/primitives';
+
 export default function TermsOfService() {
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <h1 className="text-3xl font-bold text-gray-900 mb-8">Terms of Service</h1>
-      
-      <div className="prose prose-indigo">
-        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-8">
-          <p className="text-sm text-yellow-700 font-medium">
-            MVP Disclaimer: AgentSponsor is currently in early beta (MVP stage). Features, payout thresholds, and revenue share percentages are subject to change.
-          </p>
+    <PageShell maxWidth="5xl">
+      <MotionWrapper>
+        <SectionHeader
+          eyebrow="Legal & Terms"
+          title="Terms of Service"
+          subtitle="Clear rules governing developer ledger rewards, sponsor campaign delivery, and acceptable use."
+        />
+      </MotionWrapper>
+
+      <MotionWrapper delay={0.15}>
+        <div className="space-y-6 text-zinc-300 text-sm leading-relaxed mb-12">
+          <div className="rounded-2xl border border-zinc-800 bg-[#0c0c0e] p-6 sm:p-8 space-y-4 shadow-lg">
+            <TechnicalEyebrow variant="amber">Beta Release Terms</TechnicalEyebrow>
+            <h2 className="text-base font-semibold text-white">1. Acceptance of Terms</h2>
+            <p className="text-zinc-400">
+              By installing the AgentSponsor CLI plugin or configuring campaigns on the platform, you agree to these Terms of Service.
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-zinc-800 bg-[#0c0c0e] p-6 sm:p-8 space-y-4 shadow-lg">
+            <h2 className="text-base font-semibold text-white">2. Developer Earnings & Minimum Payouts</h2>
+            <p className="text-zinc-400">
+              Developers earn ₹0.20 per qualified exposure meeting the 5.0-second active compute dwell requirement.
+            </p>
+            <ul className="space-y-2 font-mono text-xs text-zinc-300 pl-4 border-l border-zinc-800">
+              <li><strong className="text-white font-sans">Minimum Threshold:</strong> Payouts can be requested once your available balance reaches ₹50.00.</li>
+              <li><strong className="text-white font-sans">Anti-Fraud Verification:</strong> Automated replay detection or burst generation will result in ledger freeze.</li>
+              <li><strong className="text-white font-sans">Payout Rails:</strong> Disbursements are transferred directly via Indian UPI VPAs or Bank accounts.</li>
+            </ul>
+          </div>
+
+          <div className="rounded-2xl border border-zinc-800 bg-[#0c0c0e] p-6 sm:p-8 space-y-4 shadow-lg">
+            <h2 className="text-base font-semibold text-white">3. Sponsor Guidelines & Content Safety</h2>
+            <p className="text-zinc-400">
+              All sponsor creatives must directly target developer utility (developer tools, cloud services, databases, APIs). Deceptive copy, malware, adult content, or political advertisements are strictly prohibited and will be rejected during admin review.
+            </p>
+          </div>
+
+          <div className="text-xs font-mono text-zinc-500 pt-4 border-t border-zinc-800/80">
+            Last updated: September 2026 · AgentSponsor Legal Terms
+          </div>
         </div>
-
-        <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">1. Acceptance of Terms</h2>
-        <p className="mb-6 text-gray-700">
-          By installing the AgentSponsor plugin or accessing the AgentSponsor platform, you agree to these Terms of Service. If you do not agree to these terms, please do not use our services.
-        </p>
-
-        <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">2. Earnings and Payouts</h2>
-        <p className="mb-4 text-gray-700">
-          Developers earn a share of revenue generated from eligible sponsor impressions displayed during AI agent wait times. 
-        </p>
-        <ul className="list-disc pl-5 mb-6 text-gray-700">
-          <li><strong>Eligibility:</strong> Only valid, human-viewed impressions are eligible for payout. Automated or scripted attempts to generate impressions (fraud) will result in account termination and forfeiture of earnings.</li>
-          <li><strong>Threshold:</strong> Payouts can be requested once your account balance reaches the minimum threshold of ₹500.</li>
-          <li><strong>Availability:</strong> Earnings are dependent on active advertiser campaigns and platform demand. We do not guarantee a specific rate or consistent availability of sponsor messages.</li>
-        </ul>
-
-        <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">3. Advertiser Rules</h2>
-        <p className="mb-6 text-gray-700">
-          Advertisers must submit campaigns that are relevant to developers. We strictly prohibit ads containing malware, deceptive content, adult material, or political messaging. All campaigns are subject to manual review and approval by the AgentSponsor team.
-        </p>
-
-        <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">4. Limitation of Liability</h2>
-        <p className="mb-6 text-gray-700">
-          AgentSponsor is provided "as is" without warranties of any kind. In no event shall AgentSponsor be liable for any indirect, incidental, special, consequential, or punitive damages, or any loss of profits or revenues.
-        </p>
-
-        <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">5. Account Termination</h2>
-        <p className="mb-6 text-gray-700">
-          We reserve the right to suspend or terminate your account at any time, with or without cause, including for violation of these Terms of Service or fraudulent activity.
-        </p>
-
-        <p className="text-sm text-gray-500 mt-12 pt-8 border-t border-gray-200">
-          Last updated: September 19, 2026
-        </p>
-      </div>
-    </div>
+      </MotionWrapper>
+    </PageShell>
   );
 }
