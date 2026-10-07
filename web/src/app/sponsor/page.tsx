@@ -192,6 +192,18 @@ export default function SponsorPortal() {
   }, [sponsorOrg?.id, loadFallbackData]);
 
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const b = params.get('budget');
+      if (b && !isNaN(Number(b))) {
+        setTotalBudget(b);
+        setDailyBudget(String(Math.min(Number(b), Math.max(100, Math.floor(Number(b) / 5)))));
+        setShowCreateModal(true);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
     if (user && isSponsor) {
       fetchSponsorData();
     } else if (user && !isSponsor && !authLoading) {
@@ -826,34 +838,87 @@ export default function SponsorPortal() {
                   />
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs font-mono font-semibold text-zinc-300 uppercase tracking-wider mb-1">
-                      Total Budget (INR ₹)
-                    </label>
-                    <input
-                      type="number"
-                      min="500"
-                      step="500"
-                      required
-                      value={totalBudget}
-                      onChange={(e) => setTotalBudget(e.target.value)}
-                      className="w-full bg-black/80 border border-zinc-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500 font-mono"
-                    />
+                <div className="space-y-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-mono font-semibold text-zinc-300 uppercase tracking-wider mb-1">
+                        Total Budget (INR ₹)
+                      </label>
+                      <input
+                        type="number"
+                        min="199"
+                        step="100"
+                        required
+                        value={totalBudget}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setTotalBudget(val);
+                          const num = Number(val);
+                          if (!isNaN(num) && num > 0) {
+                            setDailyBudget(String(Math.min(num, Math.max(100, Math.floor(num / 5)))));
+                          }
+                        }}
+                        className="w-full bg-black/80 border border-zinc-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500 font-mono"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-mono font-semibold text-zinc-300 uppercase tracking-wider mb-1">
+                        Daily Budget (INR ₹)
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        step="100"
+                        value={dailyBudget}
+                        onChange={(e) => setDailyBudget(e.target.value)}
+                        className="w-full bg-black/80 border border-zinc-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500 font-mono"
+                      />
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-xs font-mono font-semibold text-zinc-300 uppercase tracking-wider mb-1">
-                      Daily Budget (INR ₹)
-                    </label>
-                    <input
-                      type="number"
-                      min="0"
-                      step="100"
-                      value={dailyBudget}
-                      onChange={(e) => setDailyBudget(e.target.value)}
-                      className="w-full bg-black/80 border border-zinc-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500 font-mono"
-                    />
+
+                  {/* Budget Presets */}
+                  <div className="flex flex-wrap items-center gap-1.5 text-xs font-mono">
+                    <span className="text-zinc-500 text-[11px] mr-1">Presets:</span>
+                    {[299, 499, 999, 1999, 4999, 10000].map((amt) => (
+                      <button
+                        key={amt}
+                        type="button"
+                        onClick={() => {
+                          setTotalBudget(String(amt));
+                          setDailyBudget(String(Math.min(amt, Math.max(100, Math.floor(amt / 5)))));
+                        }}
+                        className={`px-2.5 py-1 rounded text-[11px] transition-all ${
+                          Number(totalBudget) === amt
+                            ? 'bg-emerald-500 text-zinc-950 font-bold'
+                            : 'bg-zinc-800 hover:bg-zinc-700 text-zinc-300'
+                        }`}
+                      >
+                        ₹{amt.toLocaleString()}
+                      </button>
+                    ))}
                   </div>
+
+                  {/* Real-time calculated impressions card */}
+                  {totalBudget && Number(totalBudget) >= 199 && (() => {
+                    const budgetNum = Number(totalBudget);
+                    let rate = 0.40;
+                    if (budgetNum >= 5000) rate = 0.33;
+                    else if (budgetNum >= 2000) rate = 0.36;
+                    const estImpressions = Math.floor(budgetNum / rate);
+                    const estClicks = Math.floor(estImpressions * 0.024);
+                    return (
+                      <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl space-y-1 font-mono text-xs">
+                        <div className="flex justify-between items-center">
+                          <span className="text-emerald-400 font-semibold">⚡ Est. Verified Impressions:</span>
+                          <span className="font-bold text-white text-sm">~{estImpressions.toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between items-center text-[11px] text-zinc-400 pt-1 border-t border-emerald-500/20">
+                          <span>Est. Clicks: ~{estClicks} (2.4% CTR)</span>
+                          <span>Rate: ₹{rate.toFixed(2)}/exposure</span>
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

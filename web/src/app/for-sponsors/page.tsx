@@ -13,32 +13,41 @@ import {
 } from '@/components/primitives';
 
 export default function ForSponsorsPage() {
-  const [budgetTier, setBudgetTier] = useState<'starter' | 'growth' | 'scale'>('growth');
+  const [budgetTier, setBudgetTier] = useState<'starter' | 'growth' | 'scale' | 'custom'>('growth');
+  const [customVal, setCustomVal] = useState<number>(1000);
 
   const tierDetails = {
     starter: {
       name: 'Starter Package',
-      price: '₹4,999',
-      includedExposures: '12,500',
+      price: '₹499',
+      includedExposures: '1,250',
       rate: '₹0.40/exposure',
       support: 'Standard approval (< 12h)',
       rotation: 'Shared Rotation Pool',
     },
     growth: {
       name: 'Growth Package',
-      price: '₹14,999',
-      includedExposures: '45,000',
-      rate: '₹0.33/exposure',
+      price: '₹1,999',
+      includedExposures: '5,500',
+      rate: '₹0.36/exposure',
       support: 'Priority review (< 4h)',
-      rotation: 'High Priority Weighting',
+      rotation: 'High Priority Weighting (2x)',
     },
     scale: {
       name: 'Scale Package',
-      price: '₹39,999',
-      includedExposures: '140,000',
-      rate: '₹0.28/exposure',
-      support: 'Dedicated account manager',
+      price: '₹4,999',
+      includedExposures: '15,000',
+      rate: '₹0.33/exposure',
+      support: 'Dedicated support & webhooks',
       rotation: 'Dominant Category Exclusivity',
+    },
+    custom: {
+      name: 'Custom Package',
+      price: `₹${customVal.toLocaleString()}`,
+      includedExposures: `${Math.floor(customVal / 0.38).toLocaleString()}`,
+      rate: '~₹0.38/exposure',
+      support: 'Flexible campaign pacing',
+      rotation: 'Configurable Weighting',
     },
   };
 
@@ -149,41 +158,51 @@ export default function ForSponsorsPage() {
         <div className="border-t border-zinc-800/80 pt-16 mb-20">
           <SectionHeader
             eyebrow="Campaign Budget Simulator"
-            title="Transparent, High-Volume Campaign Packages"
-            subtitle="Fund your ad budget with instant UPI, Cards, or Net Banking checkout. All campaigns undergo administrative safety review."
+            title="Affordable Packages & Custom Campaign Sizing"
+            subtitle="Start with ₹499 or specify your exact budget. Verified 5s dwell impression counts calculated in real-time."
           />
 
           <div className="flex justify-center mb-8">
-            <div className="inline-flex p-1.5 rounded-xl bg-zinc-900 border border-zinc-800/80 shadow-lg">
+            <div className="inline-flex flex-wrap p-1.5 rounded-xl bg-zinc-900 border border-zinc-800/80 shadow-lg gap-1">
               <button
                 onClick={() => setBudgetTier('starter')}
                 className={`px-4 py-2 rounded-lg text-xs font-semibold font-mono transition-all ${
                   budgetTier === 'starter'
-                    ? 'bg-emerald-500 text-zinc-950 font-bold'
+                    ? 'bg-emerald-500 text-zinc-950 font-bold shadow-sm'
                     : 'text-zinc-400 hover:text-white'
                 }`}
               >
-                Starter (₹4,999)
+                Starter (₹499)
               </button>
               <button
                 onClick={() => setBudgetTier('growth')}
                 className={`px-4 py-2 rounded-lg text-xs font-semibold font-mono transition-all ${
                   budgetTier === 'growth'
-                    ? 'bg-emerald-500 text-zinc-950 font-bold'
+                    ? 'bg-emerald-500 text-zinc-950 font-bold shadow-sm'
                     : 'text-zinc-400 hover:text-white'
                 }`}
               >
-                Growth (₹14,999)
+                Growth (₹1,999)
               </button>
               <button
                 onClick={() => setBudgetTier('scale')}
                 className={`px-4 py-2 rounded-lg text-xs font-semibold font-mono transition-all ${
                   budgetTier === 'scale'
-                    ? 'bg-emerald-500 text-zinc-950 font-bold'
+                    ? 'bg-emerald-500 text-zinc-950 font-bold shadow-sm'
                     : 'text-zinc-400 hover:text-white'
                 }`}
               >
-                Scale (₹39,999)
+                Scale (₹4,999)
+              </button>
+              <button
+                onClick={() => setBudgetTier('custom')}
+                className={`px-4 py-2 rounded-lg text-xs font-semibold font-mono transition-all ${
+                  budgetTier === 'custom'
+                    ? 'bg-emerald-500 text-zinc-950 font-bold shadow-sm'
+                    : 'text-zinc-400 hover:text-white'
+                }`}
+              >
+                Custom Budget
               </button>
             </div>
           </div>
@@ -196,9 +215,34 @@ export default function ForSponsorsPage() {
               </div>
               <div className="text-right">
                 <div className="text-3xl font-semibold text-emerald-400">{selectedTier.price}</div>
-                <div className="text-[11px] font-mono text-zinc-500">Includes complete monthly ad spend</div>
+                <div className="text-[11px] font-mono text-zinc-500">Includes complete verified ad spend</div>
               </div>
             </div>
+
+            {budgetTier === 'custom' && (
+              <div className="p-4 bg-zinc-950 rounded-xl border border-zinc-800 space-y-3">
+                <div className="flex justify-between items-center text-xs font-mono text-zinc-300">
+                  <span>Enter Custom Budget (₹):</span>
+                  <input
+                    type="number"
+                    min="199"
+                    step="100"
+                    value={customVal}
+                    onChange={(e) => setCustomVal(Math.max(199, Number(e.target.value)))}
+                    className="w-32 px-3 py-1 bg-zinc-900 border border-zinc-700 rounded text-right font-mono text-emerald-400 font-bold"
+                  />
+                </div>
+                <input
+                  type="range"
+                  min="199"
+                  max="15000"
+                  step="100"
+                  value={customVal}
+                  onChange={(e) => setCustomVal(Number(e.target.value))}
+                  className="w-full accent-emerald-500 cursor-pointer h-2 bg-zinc-800 rounded-lg"
+                />
+              </div>
+            )}
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-mono">
               <div className="p-3.5 rounded-xl bg-zinc-900/60 border border-zinc-800">
@@ -224,8 +268,8 @@ export default function ForSponsorsPage() {
                 Ready to submit your creative and target active Antigravity developers?
               </div>
               <Link
-                href="/pricing"
-                className="px-6 py-2.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-semibold text-xs transition-all shadow-sm"
+                href={`/sponsor?budget=${budgetTier === 'custom' ? customVal : selectedTier.price.replace('₹', '').replace(',', '')}`}
+                className="px-6 py-2.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-semibold text-xs transition-all shadow-sm font-bold"
               >
                 Launch Campaign →
               </Link>
