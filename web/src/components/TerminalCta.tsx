@@ -5,7 +5,7 @@ import Link from 'next/link';
 
 export default function TerminalCta() {
   const [copied, setCopied] = useState(false);
-  const command = 'curl -sSL https://agentsponsor.com/install.sh | bash';
+  const command = 'curl -sSL https://ag-ysponsor.vercel.app/install.sh | bash';
 
   const handleCopy = () => {
     navigator.clipboard.writeText(command);

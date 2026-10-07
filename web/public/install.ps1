@@ -4,6 +4,9 @@ Write-Host "========================================================" -Foregroun
 Write-Host "  AgentSponsor CLI Plugin Installer (Antigravity Native)" -ForegroundColor Green
 Write-Host "========================================================" -ForegroundColor Cyan
 
+$BaseUrl = if ($env:AGENTSPONSOR_SITE_URL) { $env:AGENTSPONSOR_SITE_URL } else { "https://ag-ysponsor.vercel.app" }
+$ApiUrl = if ($env:AGENTSPONSOR_API_URL) { $env:AGENTSPONSOR_API_URL } else { "https://agentsponsor-api-production.up.railway.app" }
+
 $AgyPluginDir = Join-Path $env:USERPROFILE ".gemini\config\plugins\agentsponsor"
 $ConfigDir = Join-Path $env:USERPROFILE ".agentsponsor"
 $SettingsFile = Join-Path $env:USERPROFILE ".gemini\antigravity-cli\settings.json"
@@ -27,7 +30,7 @@ if (-not $Uuid) {
     $Uuid = [guid]::NewGuid().ToString()
     $ConfigContent = @{
         installation_id = $Uuid
-        api_url = "http://localhost:8000"
+        api_url = $ApiUrl
         enabled = $true
     } | ConvertTo-Json
     Set-Content -Path $ConfigFile -Value $ConfigContent
@@ -42,29 +45,31 @@ if (-not (Test-Path $scriptsDir)) {
     New-Item -ItemType Directory -Path $scriptsDir -Force | Out-Null
 }
 
-# 3. Download / Copy statusline script
+# 3. Download statusline script
 $statuslineScript = Join-Path $scriptsDir "agentsponsor-statusline.js"
-$sourceUrl = "http://localhost:3000/agentsponsor-statusline.js"
+$sourceUrl = "$BaseUrl/agentsponsor-statusline.js"
 
 try {
     Invoke-WebRequest -Uri $sourceUrl -OutFile $statuslineScript -UseBasicParsing
+    Write-Host "✓ Downloaded statusline script from $sourceUrl" -ForegroundColor Green
 } catch {
-    # If downloading from localhost fails, copy from local workspace if available
+    # If downloading fails, copy from local workspace if available
     $localWsFile = Join-Path (Get-Location) "plugin\scripts\agentsponsor-statusline.js"
     if (Test-Path $localWsFile) {
         Copy-Item -Path $localWsFile -Destination $statuslineScript -Force
     }
 }
 
-Write-Host "`n✓ Plugin installed to: $AgyPluginDir" -ForegroundColor Green
+Write-Host "✓ Plugin installed to: $AgyPluginDir" -ForegroundColor Green
 
 # 4. Configure Antigravity CLI statusLine
 if (Test-Path $SettingsFile) {
     try {
         $settings = Get-Content -Raw -Path $SettingsFile | ConvertFrom-Json
+        $normalizedScriptPath = $statuslineScript.Replace('\', '/')
         $settings | Add-Member -NotePropertyName "statusLine" -NotePropertyValue @{
             type = "command"
-            command = "node ~/.gemini/config/plugins/agentsponsor/scripts/agentsponsor-statusline.js"
+            command = "node $normalizedScriptPath"
             stack_with_default = $true
         } -Force
         $settings | ConvertTo-Json -Depth 10 | Set-Content -Path $SettingsFile
@@ -79,6 +84,6 @@ Write-Host "`n--------------------------------------------------------" -Foregro
 Write-Host "  INSTALLATION UUID: $Uuid" -ForegroundColor Yellow
 Write-Host "--------------------------------------------------------" -ForegroundColor DarkGray
 Write-Host "To link this machine to your personal earnings ledger:" -ForegroundColor White
-Write-Host "  1. Sign in at: http://localhost:3000/login" -ForegroundColor Cyan
-Write-Host "  2. Direct link: http://localhost:3000/connect?code=$Uuid" -ForegroundColor Cyan
+Write-Host "  1. Sign in at: $BaseUrl/login" -ForegroundColor Cyan
+Write-Host "  2. Direct link: $BaseUrl/connect?code=$Uuid" -ForegroundColor Cyan
 Write-Host "========================================================`n" -ForegroundColor Green

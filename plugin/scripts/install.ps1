@@ -4,6 +4,9 @@ Write-Host "========================================================" -Foregroun
 Write-Host "  AgentSponsor CLI Plugin Installer (Antigravity Native)" -ForegroundColor Green
 Write-Host "========================================================" -ForegroundColor Cyan
 
+$BaseUrl = if ($env:AGENTSPONSOR_SITE_URL) { $env:AGENTSPONSOR_SITE_URL } else { "https://ag-ysponsor.vercel.app" }
+$ApiUrl = if ($env:AGENTSPONSOR_API_URL) { $env:AGENTSPONSOR_API_URL } else { "https://agentsponsor-api-production.up.railway.app" }
+
 $PluginDir = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
 $AgyPluginDir = Join-Path $env:USERPROFILE ".gemini\config\plugins\agentsponsor"
 $ConfigDir = Join-Path $env:USERPROFILE ".agentsponsor"
@@ -28,7 +31,7 @@ if (-not $Uuid) {
     $Uuid = [guid]::NewGuid().ToString()
     $ConfigContent = @{
         installation_id = $Uuid
-        api_url = "http://localhost:8000"
+        api_url = $ApiUrl
         enabled = $true
     } | ConvertTo-Json
     Set-Content -Path $ConfigFile -Value $ConfigContent
@@ -45,19 +48,20 @@ if (Test-Path $AgyPluginDir) {
 }
 
 Copy-Item -Path $PluginDir -Destination $AgyPluginDir -Recurse
-Write-Host "`nPlugin installed to: $AgyPluginDir" -ForegroundColor Green
+Write-Host "`n✓ Plugin installed to: $AgyPluginDir" -ForegroundColor Green
 
 # 3. Configure Antigravity CLI statusLine
+$statuslineScript = (Join-Path $AgyPluginDir "scripts\agentsponsor-statusline.js").Replace('\', '/')
 if (Test-Path $SettingsFile) {
     try {
         $settings = Get-Content -Raw -Path $SettingsFile | ConvertFrom-Json
         $settings | Add-Member -NotePropertyName "statusLine" -NotePropertyValue @{
             type = "command"
-            command = "node ~/.gemini/config/plugins/agentsponsor/scripts/agentsponsor-statusline.js"
+            command = "node $statuslineScript"
             stack_with_default = $true
         } -Force
         $settings | ConvertTo-Json -Depth 10 | Set-Content -Path $SettingsFile
-        Write-Host "Configured statusLine in: $SettingsFile" -ForegroundColor Green
+        Write-Host "✓ Configured statusLine in: $SettingsFile" -ForegroundColor Green
     } catch {
         Write-Warning "Could not update statusLine settings: $_"
     }
@@ -68,6 +72,6 @@ Write-Host "`n--------------------------------------------------------" -Foregro
 Write-Host "  INSTALLATION UUID: $Uuid" -ForegroundColor Yellow
 Write-Host "--------------------------------------------------------" -ForegroundColor DarkGray
 Write-Host "To link this machine to your personal earnings ledger:" -ForegroundColor White
-Write-Host "  1. Sign in at: http://localhost:3000/login" -ForegroundColor Cyan
-Write-Host "  2. Direct link: http://localhost:3000/connect?code=$Uuid" -ForegroundColor Cyan
+Write-Host "  1. Sign in at: $BaseUrl/login" -ForegroundColor Cyan
+Write-Host "  2. Direct link: $BaseUrl/connect?code=$Uuid" -ForegroundColor Cyan
 Write-Host "========================================================`n" -ForegroundColor Green

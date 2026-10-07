@@ -1,32 +1,41 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -e
 
-PLUGIN_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
-AGY_PLUGIN_DIR="$HOME/.gemini/config/plugins/agentsponsor"
+BASE_URL="${AGENTSPONSOR_SITE_URL:-https://ag-ysponsor.vercel.app}"
+API_URL="${AGENTSPONSOR_API_URL:-https://agentsponsor-api-production.up.railway.app}"
+PLUGIN_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+DEST_DIR="$HOME/.gemini/config/plugins/agentsponsor"
 CONFIG_DIR="$HOME/.agentsponsor"
 SETTINGS_FILE="$HOME/.gemini/antigravity-cli/settings.json"
 
+echo "============================================================"
+echo "AgentSponsor CLI Plugin Installer (Antigravity Native)"
+echo "============================================================"
+
+# Check requirements
+if ! command -v node >/dev/null 2>&1; then
+    echo "Error: Node.js is required to run the AgentSponsor status line."
+    echo "Please install Node.js 18+ and try again."
+    exit 1
+fi
+
+# 1. Initialize Machine Config
 mkdir -p "$CONFIG_DIR"
-if [ ! -f "$CONFIG_DIR/config.json" ]; then
-    if command -v uuidgen > /dev/null; then
-        UUID=$(uuidgen)
-    elif [ -f /proc/sys/kernel/random/uuid ]; then
-        UUID=$(cat /proc/sys/kernel/random/uuid)
-    else
-        UUID="random-uuid-$RANDOM"
-    fi
-    echo "{\"installation_id\": \"$UUID\"}" > "$CONFIG_DIR/config.json"
+CONFIG_FILE="$CONFIG_DIR/config.json"
+if [ ! -f "$CONFIG_FILE" ]; then
+    INSTALL_ID=$(node -e "console.log(require('crypto').randomUUID())" 2>/dev/null || cat /proc/sys/kernel/random/uuid 2>/dev/null || echo "inst_$(date +%s)_$RANDOM")
+    echo "{\"installation_id\": \"$INSTALL_ID\", \"api_url\": \"$API_URL\", \"enabled\": true}" > "$CONFIG_FILE"
+else
+    INSTALL_ID=$(node -e "try{console.log(JSON.parse(require('fs').readFileSync('$CONFIG_FILE','utf8')).installation_id || '')}catch(e){}" 2>/dev/null)
 fi
 
-mkdir -p "$(dirname "$AGY_PLUGIN_DIR")"
-if [ -e "$AGY_PLUGIN_DIR" ]; then
-    rm -rf "$AGY_PLUGIN_DIR"
-fi
+# 2. Install Plugin to ~/.gemini/config/plugins/agentsponsor
+mkdir -p "$DEST_DIR"
+rm -rf "$DEST_DIR"/*
+cp -r "$PLUGIN_DIR"/* "$DEST_DIR/"
+echo "✓ Plugin installed to: $DEST_DIR"
 
-cp -r "$PLUGIN_DIR" "$AGY_PLUGIN_DIR"
-echo "Plugin installed to $AGY_PLUGIN_DIR"
-
-# Configure Antigravity custom statusLine with stack_with_default
+# 3. Configure Antigravity CLI statusLine
 if [ -f "$SETTINGS_FILE" ]; then
     python3 -c "
 import json
@@ -43,33 +52,17 @@ data['statusLine'] = {
 }
 with open(path, 'w') as f:
     json.dump(data, f, indent=2)
-" || true
-    echo "Configured statusLine in $SETTINGS_FILE"
+" 2>/dev/null || true
+    echo "✓ Configured statusLine in: $SETTINGS_FILE"
 fi
 
-# Request pairing code from API or generate deterministic code
-API_URL="${AGENTSPONSOR_API_URL:-http://localhost:3000}"
-SITE_URL="${AGENTSPONSOR_SITE_URL:-https://agentsponsor.com}"
-PAIR_RES=$(curl -s -X POST "$API_URL/v1/installations/pair/init" \
-    -H "Content-Type: application/json" \
-    -d "{\"installation_uuid\": \"$UUID\", \"os\": \"$(uname -s)\", \"client_version\": \"1.0.0\"}" 2>/dev/null || true)
-
-PAIRING_CODE=""
-if [ -n "$PAIR_RES" ]; then
-    PAIRING_CODE=$(node -e "try{console.log(JSON.parse(process.argv[1]).pairing_code || '')}catch(e){}" "$PAIR_RES" 2>/dev/null || true)
-fi
-
-if [ -z "$PAIRING_CODE" ]; then
-    PAIRING_CODE=$(node -e "console.log(require('crypto').randomBytes(4).toString('hex').toUpperCase().match(/.{1,4}/g).join('-'))" 2>/dev/null || echo "DEV-1234")
-fi
-
+# 4. Print Pairing Information
 echo ""
-echo "============================================================"
-echo "✓ AgentSponsor successfully installed!"
-echo ""
-echo "Connect this installation to start earning:"
-echo "$SITE_URL/connect?code=$PAIRING_CODE"
-echo ""
-echo "Pairing code: $PAIRING_CODE (valid for 15 minutes)"
-echo "============================================================"
+echo "--------------------------------------------------------"
+echo "  INSTALLATION UUID: $INSTALL_ID"
+echo "--------------------------------------------------------"
+echo "To link this machine to your personal earnings ledger:"
+echo "  1. Sign in at: $BASE_URL/login"
+echo "  2. Direct link: $BASE_URL/connect?code=$INSTALL_ID"
+echo "========================================================"
 echo ""

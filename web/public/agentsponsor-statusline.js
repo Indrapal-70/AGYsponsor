@@ -42,6 +42,34 @@ const SPONSOR_POOL = [
     }
 ];
 
+const ACTIVE_STATES = new Set([
+    'working',
+    'thinking',
+    'tool_use',
+    'tooluse',
+    'executing',
+    'streaming',
+    'running',
+    'busy',
+    'prompt_running',
+    'active',
+    'in_progress',
+    'generating'
+]);
+
+const IDLE_STATES = new Set([
+    'idle',
+    'ready',
+    'waiting',
+    'stopped',
+    'completed',
+    'done',
+    'standby',
+    'finished',
+    'none',
+    'inactive'
+]);
+
 let config = {
     api_url: "http://localhost:8000",
     cache_duration: 30, // 30s cache
@@ -177,17 +205,18 @@ const reportImpressionAsync = (apiUrl, campaignId, installId) => {
     } catch (e) { }
 };
 
-const formatStatusLine = (campaign) => {
+const formatStatusLine = (campaign, maxColumns) => {
     if (!campaign) return '';
     const advertiser = campaign.advertiser_name || campaign.advertiser || 'CloudForge';
     const headline = campaign.headline || 'Deploy serverless AI backends with instant cold starts';
 
-    // ANSI Colors: Emerald green badge + bold white advertiser + dimmed text
-    const badge = '\x1b[38;2;16;185;129m[Sponsored]\x1b[0m';
-    const adv = `\x1b[1m${advertiser}\x1b[0m`;
-    const text = `— ${headline} →`;
+    let line = `Sponsored · ${advertiser} — ${headline} →`;
 
-    return `${badge} ${adv} ${text}`;
+    if (maxColumns && typeof maxColumns === 'number' && maxColumns > 3 && line.length > maxColumns) {
+        line = line.slice(0, maxColumns - 1) + '…';
+    }
+
+    return line;
 };
 
 const main = async (rawInput) => {
@@ -196,14 +225,38 @@ const main = async (rawInput) => {
     }
 
     try {
-        let payload = {};
-        if (rawInput && rawInput.trim()) {
-            try { payload = JSON.parse(rawInput.trim()); } catch (e) { }
+        if (!rawInput || !rawInput.trim()) {
+            // No input or prompt not active -> silent exit
+            process.exit(0);
         }
 
-        // REQUIREMENT: Only appear when a task is running (never during idle!)
-        const state = (payload.agent_state || payload.state || payload.status || '').toLowerCase();
-        if (state === 'idle' || payload.is_idle === true) {
+        let payload = {};
+        try { 
+            payload = JSON.parse(rawInput.trim()); 
+        } catch (e) { 
+            // Malformed JSON -> fail open with empty stdout
+            process.exit(0);
+        }
+
+        // REQUIREMENT: Only show status line while prompt/command is actively executing
+        if (payload.is_idle === true || payload.busy === false || payload.is_running === false || payload.active === false) {
+            process.exit(0);
+        }
+
+        const state = (payload.agent_state || payload.state || payload.status || '').toLowerCase().trim();
+        
+        if (IDLE_STATES.has(state)) {
+            process.exit(0);
+        }
+
+        const isRunning = ACTIVE_STATES.has(state) || 
+                          payload.is_running === true || 
+                          payload.busy === true || 
+                          payload.command_running === true || 
+                          payload.active_prompt === true;
+
+        if (!isRunning) {
+            // Neither actively running nor recognized active state -> show nothing
             process.exit(0);
         }
 
@@ -218,7 +271,8 @@ const main = async (rawInput) => {
         const campaignId = campaign.campaign_id || campaign.id;
         reportImpressionAsync(config.api_url, campaignId, installId);
 
-        const statusText = formatStatusLine(campaign);
+        const maxColumns = payload.terminal_columns || payload.columns || payload.width;
+        const statusText = formatStatusLine(campaign, maxColumns);
         if (statusText) {
             process.stdout.write(statusText);
         }
@@ -246,6 +300,6 @@ if (process.stdin.isTTY) {
     });
     process.stdin.on('end', runOnce);
 
-    // If stdin doesn't close within 35ms, execute immediately without hanging
+    // If stdin doesn't close within 35ms, execute immediately
     setTimeout(runOnce, 35);
 }

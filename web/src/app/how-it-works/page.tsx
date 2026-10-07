@@ -257,7 +257,7 @@ export default function HowItWorksPage() {
             Install the verified standalone hook, link your 8-character terminal code, and begin earning while your agents plan and code.
           </p>
           <div className="max-w-md mx-auto pt-2">
-            <CodeBlock code="curl -sSL https://agentsponsor.com/install.sh | bash" />
+            <CodeBlock code="curl -sSL https://ag-ysponsor.vercel.app/install.sh | bash" />
           </div>
           <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
             <Link

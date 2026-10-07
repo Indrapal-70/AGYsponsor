@@ -14,8 +14,8 @@ import {
 export default function DownloadPage() {
   const [platform, setPlatform] = useState<'unix' | 'windows'>('unix');
 
-  const unixCommand = 'curl -sSL https://agentsponsor.com/install.sh | bash';
-  const windowsCommand = 'irm https://agentsponsor.com/install.ps1 | iex';
+  const unixCommand = 'curl -sSL https://ag-ysponsor.vercel.app/install.sh | bash';
+  const windowsCommand = 'irm https://ag-ysponsor.vercel.app/install.ps1 | iex';
 
   return (
     <PageShell maxWidth="5xl">

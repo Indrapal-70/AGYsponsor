@@ -222,7 +222,7 @@ export default function ForUsersPage() {
             Run the public curl command, copy your 8-character terminal pairing code, and link your installation to your personal earnings dashboard.
           </p>
           <div className="max-w-md mx-auto pt-2">
-            <CodeBlock code="curl -sSL https://agentsponsor.com/install.sh | bash" />
+            <CodeBlock code="curl -sSL https://ag-ysponsor.vercel.app/install.sh | bash" />
           </div>
           <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
             <Link
